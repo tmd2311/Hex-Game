@@ -27,11 +27,30 @@
             font-size: 18px;
             color: #888;
         }
+        .button {
+            background-color: #007BFF; /* Màu nền nút */
+            border: none;
+            color: white; /* Màu chữ */
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px; /* Bo góc */
+            transition: background-color 0.3s, transform 0.3s; /* Hiệu ứng chuyển đổi */
+        }
+        .button:hover {
+            background-color: #0056b3; /* Màu nền khi hover */
+            transform: scale(1.1); /* Phóng to khi hover */
+        }
     </style>
 </head>
 <body>
 <h3>PlayHex</h3>
 <div id="turn-indicator"></div>
+<button class="button" onclick="callResetAPI()">Reset</button>
 <script src="sketch.js"></script>
 </body>
 </html>

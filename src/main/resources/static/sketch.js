@@ -96,7 +96,7 @@ function drawHexGrid() {
 // Hàm vẽ viền cho các cạnh cụ thể của các ô ở biên
 function drawBorder(offset, isRed) {
     if (isRed) {
-        stroke(200, 0, 0); // Màu đỏ
+        stroke(0, 0, 200); // Màu đỏ
         strokeWeight(3);
         for (let col = 0; col < cols; col++) {
             let x = col * dx; // Tâm của ô đầu cột
@@ -140,7 +140,7 @@ function drawBorder(offset, isRed) {
         }
     } else {
         // Vẽ viền xanh dương: cạnh 1, 6 của ô đầu hàng (col = 0) và cạnh 3, 4 của ô cuối hàng (col = cols - 1)
-        stroke(0, 0, 200); // Màu xanh dương
+        stroke(200, 0, 0); // Màu xanh dương
         strokeWeight(3);
 
         // Cạnh 1, 6 của ô đầu hàng (col = 0)
@@ -192,19 +192,16 @@ function mousePressed() {
     let mx = mouseX - offsetX;
     let my = mouseY - offsetY;
 
-    // Tìm ô được nhấp
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             let x = col * dx + row * (dx / 2);
             let y = row * dy;
             let d = dist(mx, my, x, y);
-            if (d < hexSize) {
-                // Kiểm tra nếu ô trống
-                if (board[row][col] === 0) {
-                    board[row][col] = currentPlayer;
-                    // Chuyển lượt
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    updateTurnIndicator();
+
+            if (d < hexSize) { // Kiểm tra người chơi nhấp vào một ô
+                if (board[row][col] === 0) { // Ô trống
+                    // Gọi API move với vị trí và người chơi hiện tại
+                    callMoveAPI(row, col, currentPlayer);
                 }
             }
         }
@@ -215,4 +212,72 @@ function mousePressed() {
 function updateTurnIndicator() {
     let indicator = document.getElementById("turn-indicator");
     indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">${'Người chơi: '+ currentPlayer}</span>`;
+}
+async function callResetAPI() {
+    try {
+        const response = await fetch('/api/reset', {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            // Làm mới bảng lưới Hex trong giao diện
+            resetBoardUI();
+        } else {
+            alert("Có lỗi xảy ra khi gọi hàm reset.");
+        }
+    } catch (error) {
+        console.error('Lỗi:', error);
+        alert("Không thể kết nối đến server.");
+    }
+}
+
+// Hàm làm mới bảng lưới Hex trong giao diện
+function resetBoardUI() {
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            board[row][col] = 0; // Reset tất cả ô về trạng thái trống (0)
+        }
+    }
+    currentPlayer = 1; // Đặt lại lượt chơi về người chơi 1
+    updateTurnIndicator(); // Cập nhật chỉ báo lượt
+    redraw(); // Vẽ lại lưới lục giác
+}
+
+
+async function callMoveAPI(row, col, player) {
+    const moveRequest = {
+        row: row,         // Dòng người chơi muốn di chuyển
+        col: col,         // Cột người chơi muốn di chuyển
+        player: player    // Người chơi hiện tại (1: đỏ, 2: xanh dương)
+    };
+
+    try {
+        const response = await fetch('/api/move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(moveRequest)
+        });
+
+        if (response.ok) {
+            const moveResponse = await response.json();
+            if (moveResponse.success) {
+                board[row][col] = player; // Cập nhật trạng thái bảng
+                currentPlayer = (player === 1) ? 2 : 1; // Chuyển lượt
+                updateTurnIndicator(); // Cập nhật chỉ báo lượt
+                redraw(); // Vẽ lại lưới
+                if (moveResponse.winner !== 0) {
+                    alert(`Người chơi ${moveResponse.winner} đã thắng!`);
+                }
+            } else {
+                alert("Nước đi không hợp lệ. Hãy thử lại!");
+            }
+        } else {
+            alert("Có lỗi xảy ra khi gọi API move.");
+        }
+    } catch (error) {
+        console.error('Lỗi:', error);
+        alert("Không thể kết nối đến server.");
+    }
 }
