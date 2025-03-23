@@ -8,7 +8,7 @@ let offsetX = 50; // Dịch chuyển để căn giữa lưới
 let offsetY = 50;
 
 function setup() {
-    createCanvas(500, 500); // Tạo canvas
+    createCanvas(600, 500); // Tạo canvas
     dx = hexSize * sqrt(3); // Khoảng cách ngang giữa các tâm lục giác
     dy = hexSize * 1.5; // Khoảng cách dọc giữa các tâm lục giác
 
@@ -31,17 +31,17 @@ function draw() {
     // Vẽ lưới lục giác
     drawHexGrid();
 
-    // Vẽ viền đỏ
+    // Vẽ viền đỏ cho cạnh trái và phải
     stroke(200, 0, 0); // Màu đỏ
-    strokeWeight(3); // Độ dày viền
+    strokeWeight(5); // Độ dày viền
     noFill();
-    drawBorder(2); // Viền đỏ cách lưới 2 pixel
+    drawBorder(0, true); // Viền đỏ cho cạnh trái và phải
 
-    // Vẽ viền xanh dương
+    // Vẽ viền xanh dương cho cạnh trên và dưới
     stroke(0, 0, 200); // Màu xanh dương
-    strokeWeight(3);
+    strokeWeight(5);
     noFill();
-    drawBorder(5); // Viền xanh dương cách lưới 5 pixel
+    drawBorder(0, false); // Viền xanh dương cho cạnh trên và dưới
 }
 
 // Hàm vẽ một lục giác tại vị trí (x, y)
@@ -93,45 +93,98 @@ function drawHexGrid() {
         }
     }
 }
+// Hàm vẽ viền cho các cạnh cụ thể của các ô ở biên
+function drawBorder(offset, isRed) {
+    if (isRed) {
+        stroke(200, 0, 0); // Màu đỏ
+        strokeWeight(3);
+        for (let col = 0; col < cols; col++) {
+            let x = col * dx; // Tâm của ô đầu cột
+            let y = 0;
 
-// Hàm vẽ đường viền bao quanh lưới
-function drawBorder(offset) {
-    let points = [];
+            // Cạnh 1: từ đỉnh 0 đến đỉnh 1
+            let angle1 = radians(60*2  + 90);
+            let angle2 = radians(60 * 3 + 90);
+            let x1 = x + (hexSize + offset) * cos(angle1);
+            let y1 = y + (hexSize + offset) * sin(angle1);
+            let x2 = x + (hexSize + offset) * cos(angle2);
+            let y2 = y + (hexSize + offset) * sin(angle2);
+            line(x1, y1, x2, y2);
 
-    // Tính toán các điểm viền trên cùng
-    for (let col = 0; col < cols; col++) {
-        let x = col * dx - offset;
-        let y = -hexSize - offset;
-        points.push([x, y]);
+            // Cạnh 2: từ đỉnh 1 đến đỉnh 2
+            let angle3 = radians(60 * 4 + 90);
+            let x3 = x + (hexSize + offset) * cos(angle3);
+            let y3 = y + (hexSize + offset) * sin(angle3);
+            line(x2, y2, x3, y3);
+        }
+
+        // Cạnh 5, 6 của ô cuối cột (row = rows - 1)
+        for (let col = 0; col < cols; col++) {
+            let x = col * dx + (rows - 1) * (dx / 2); // Tâm của ô cuối cột
+            let y = (rows - 1) * dy;
+
+            // Cạnh 5: từ đỉnh 4 đến đỉnh 5
+            let angle4 = radians(60 * 5 + 90);
+            let angle5 = radians(60 * 6 + 90);
+            let x4 = x + (hexSize + offset) * cos(angle4);
+            let y4 = y + (hexSize + offset) * sin(angle4);
+            let x5 = x + (hexSize + offset) * cos(angle5);
+            let y5 = y + (hexSize + offset) * sin(angle5);
+            line(x4, y4, x5, y5);
+
+            // Cạnh 6: từ đỉnh 5 đến đỉnh 0
+            let angle0 = radians(60 * 1 + 90);
+            let x0 = x + (hexSize + offset) * cos(angle0);
+            let y0 = y + (hexSize + offset) * sin(angle0);
+            line(x5, y5, x0, y0);
+        }
+    } else {
+        // Vẽ viền xanh dương: cạnh 1, 6 của ô đầu hàng (col = 0) và cạnh 3, 4 của ô cuối hàng (col = cols - 1)
+        stroke(0, 0, 200); // Màu xanh dương
+        strokeWeight(3);
+
+        // Cạnh 1, 6 của ô đầu hàng (col = 0)
+        for (let row = 0; row < rows; row++) {
+            let x = row * (dx / 2); // Tâm của ô đầu hàng
+            let y = row * dy;
+
+            // Cạnh 1: từ đỉnh 0 đến đỉnh 1
+            let angle0 = radians(60 * 1 + 90);
+            let angle1 = radians(60 * 2 + 90);
+            let x0 = x + (hexSize + offset) * cos(angle0);
+            let y0 = y + (hexSize + offset) * sin(angle0);
+            let x1 = x + (hexSize + offset) * cos(angle1);
+            let y1 = y + (hexSize + offset) * sin(angle1);
+            line(x0, y0, x1, y1);
+
+            // Cạnh 6: từ đỉnh 5 đến đỉnh 0
+            let angle5 = radians(60 * 6 + 90);
+            let x5 = x + (hexSize + offset) * cos(angle5);
+            let y5 = y + (hexSize + offset) * sin(angle5);
+            line(x5, y5, x0, y0);
+        }
+
+        // Cạnh 3, 4 của ô cuối hàng (col = cols - 1)
+        for (let row = 0; row < rows; row++) {
+            let x = (cols - 1) * dx + row * (dx / 2); // Tâm của ô cuối hàng
+            let y = row * dy;
+
+            // Cạnh 3: từ đỉnh 2 đến đỉnh 3
+            let angle2 = radians(60 * 3 + 90);
+            let angle3 = radians(60 * 4 + 90);
+            let x2 = x + (hexSize + offset) * cos(angle2);
+            let y2 = y + (hexSize + offset) * sin(angle2);
+            let x3 = x + (hexSize + offset) * cos(angle3);
+            let y3 = y + (hexSize + offset) * sin(angle3);
+            line(x2, y2, x3, y3);
+
+            // Cạnh 4: từ đỉnh 3 đến đỉnh 4
+            let angle4 = radians(60 * 5 + 90);
+            let x4 = x + (hexSize + offset) * cos(angle4);
+            let y4 = y + (hexSize + offset) * sin(angle4);
+            line(x3, y3, x4, y4);
+        }
     }
-
-    // Tính toán các điểm viền bên phải
-    for (let row = 0; row < rows; row++) {
-        let x = (cols - 1) * dx + row * (dx / 2) + hexSize * sqrt(3) / 2 + offset;
-        let y = row * dy;
-        points.push([x, y]);
-    }
-
-    // Tính toán các điểm viền dưới cùng
-    for (let col = cols - 1; col >= 0; col--) {
-        let x = col * dx + (rows - 1) * (dx / 2) - offset;
-        let y = (rows - 1) * dy + hexSize + offset;
-        points.push([x, y]);
-    }
-
-    // Tính toán các điểm viền bên trái
-    for (let row = rows - 1; row >= 0; row--) {
-        let x = row * (dx / 2) - hexSize * sqrt(3) / 2 - offset;
-        let y = row * dy;
-        points.push([x, y]);
-    }
-
-    // Vẽ đường viền
-    beginShape();
-    for (let i = 0; i < points.length; i++) {
-        vertex(points[i][0], points[i][1]);
-    }
-    endShape(CLOSE);
 }
 
 // Hàm xử lý khi người chơi nhấp chuột
@@ -161,5 +214,5 @@ function mousePressed() {
 // Hàm cập nhật chỉ báo lượt
 function updateTurnIndicator() {
     let indicator = document.getElementById("turn-indicator");
-    indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">${currentPlayer}</span>`;
+    indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">${'Người chơi: '+ currentPlayer}</span>`;
 }
