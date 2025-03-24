@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayHex</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+    <style>
+        body {
+            background-color: #2f2f2f; /* Dark background like in the image */
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        #turn-indicator {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #888;
+        }
+        .button {
+            background-color: #007BFF; /* Màu nền nút */
+            border: none;
+            color: white; /* Màu chữ */
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px; /* Bo góc */
+            transition: background-color 0.3s, transform 0.3s; /* Hiệu ứng chuyển đổi */
+        }
+        .button:hover {
+            background-color: #0056b3; /* Màu nền khi hover */
+            transform: scale(1.1); /* Phóng to khi hover */
+        }
+    </style>
+</head>
+<body>
+<h3>PlayHex</h3>
+<div id="turn-indicator"></div>
+<div><button class="button" onclick="callResetAPI()">Reset</button></div>
+<div><button id="swap-button" class="button" onclick="callSwapAPI()">Swap</button>
+</div>
+<script src="sketch.js"></script>
+</body>
+</html>

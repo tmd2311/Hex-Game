@@ -270,7 +270,7 @@ async function callMoveAPI(row, col, player) {
                 updateTurnIndicator(); // Cập nhật chỉ báo lượt
                 redraw(); // Vẽ lại lưới
                 if (moveResponse.winner !== 0) {
-                    alert(`Người chơi ${moveResponse.winner} đã thắng!`);
+                    showWinDialog(moveResponse.winner);
                 }
             } else {
                 alert("Nước đi không hợp lệ. Hãy thử lại!");
@@ -282,6 +282,75 @@ async function callMoveAPI(row, col, player) {
         console.error('Lỗi:', error);
         alert("Không thể kết nối đến server.");
     }
+}
+
+function showWinDialog(winner) {
+    // Tạo một phần tử div chứa thông báo chiến thắng
+    let dialog = document.createElement("div");
+    dialog.id = "winDialog";
+    dialog.style.position = "fixed";
+    dialog.style.top = "50%";
+    dialog.style.left = "50%";
+    dialog.style.transform = "translate(-50%, -50%)";
+    dialog.style.background = "black";
+    dialog.style.borderRadius = "20px";
+    dialog.style.padding = "20px";
+    dialog.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+    dialog.style.textAlign = "center";
+
+    // Tiêu đề thông báo
+    let title = document.createElement("h2");
+    title.innerText = `NGƯỜI CHƠI SỐ ${winner} THẮNG`;
+    title.style.marginBottom = "50px";
+    dialog.appendChild(title);
+
+    // Nút NEW GAME
+    let newGameButton = document.createElement("button");
+    newGameButton.innerText = "NEW GAME";
+    newGameButton.style.display = "block";
+    newGameButton.style.margin = "30px auto";
+    newGameButton.style.padding = "10px 20px";
+    newGameButton.style.fontSize = "18px";
+    newGameButton.style.border = "none";
+    newGameButton.style.borderRadius = "8px";
+    newGameButton.style.backgroundColor = "#007BFF";
+    newGameButton.style.color = "white";
+    newGameButton.style.cursor = "pointer";
+    newGameButton.onmouseover = function() {
+        newGameButton.style.backgroundColor = "#0056b3"; // Màu khi hover
+    };
+    newGameButton.onmouseout = function() {
+        newGameButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
+    };
+    newGameButton.onclick = function() {
+        location.reload(); // Reset lại game
+    };
+    dialog.appendChild(newGameButton);
+
+// Nút BACK TO HOME
+    let backButton = document.createElement("button");
+    backButton.innerText = "BACK TO HOME";
+    backButton.style.display = "block";
+    backButton.style.margin = "10px auto";
+    backButton.style.padding = "10px 20px";
+    backButton.style.fontSize = "18px";
+    backButton.style.border = "none";
+    backButton.style.borderRadius = "8px";
+    backButton.style.backgroundColor = "#007BFF";
+    backButton.style.color = "white";
+    backButton.style.cursor = "pointer";
+    backButton.onmouseover = function() {
+        backButton.style.backgroundColor = "#0056b3"; // Màu khi hover
+    };
+    backButton.onmouseout = function() {
+        backButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
+    };
+    backButton.onclick = function() {
+        window.location.href = "home.html"; // Điều hướng về trang chủ
+    };
+    dialog.appendChild(backButton);
+
+    document.body.appendChild(dialog);
 }
 
 async function callSwapAPI() {

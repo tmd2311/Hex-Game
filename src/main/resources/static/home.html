@@ -14,9 +14,28 @@
     <button onclick="playWithFriend()">CHƠI VỚI BẠN</button>
 </div>
 
+<!-- Dialog hiển thị luật chơi (Mặc định ẩn) -->
+<div id="rulesDialog" class="dialog">
+    <div class="dialog-content">
+        <h2>LUẬT CHƠI </h2>
+        <h2>ĐẤU TRƯỜNG LỤC GIÁC</h2>
+        <p>- Trò chơi gồm hai người tham gia, mỗi người được gán một màu: Đỏ và Xanh lam.</p>
+        <p>- Mỗi người chơi sở hữu hai cạnh đối diện của bàn cờ hình thoi.</p>
+        <p>- Người chơi luân phiên đặt một viên đá có màu của mình vào một ô trống trên bàn cờ.</p>
+        <p>- Người đi trước thường là Đỏ. Khi đã đặt viên đá xuống, không thể di chuyển, thay thế hoặc loại bỏ.</p>
+        <p>- Trò chơi có Luật Đổi Lượt (Swap Rule), cho phép người chơi thứ hai hoán đổi màu sau nước đi đầu tiên để đảm bảo công bằng.</p>
+        <p>- <b>Điều kiện chiến thắng:</b> Người chơi chiến thắng khi tạo được một đường liền mạch kết nối hai cạnh bàn cờ của mình.</p>
+        <button onclick="closeRules()">Trở lại</button>
+    </div>
+</div>
+
 <script>
     function showRules() {
-        alert("Luật chơi sẽ được hiển thị ở đây.");
+        document.getElementById("rulesDialog").style.display = "flex";
+    }
+
+    function closeRules() {
+        document.getElementById("rulesDialog").style.display = "none";
     }
 
     function playWithAI() {
