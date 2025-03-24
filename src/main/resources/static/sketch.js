@@ -19,7 +19,6 @@ function setup() {
             board[row][col] = 0; // 0 nghĩa là ô trống
         }
     }
-
     // Cập nhật chỉ báo lượt
     updateTurnIndicator();
 }
@@ -211,7 +210,7 @@ function mousePressed() {
 // Hàm cập nhật chỉ báo lượt
 function updateTurnIndicator() {
     let indicator = document.getElementById("turn-indicator");
-    indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">${'Người chơi: '+ currentPlayer}</span>`;
+    indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">Player: ${currentPlayer}</span>`;
 }
 async function callResetAPI() {
     try {
@@ -222,6 +221,9 @@ async function callResetAPI() {
         if (response.ok) {
             // Làm mới bảng lưới Hex trong giao diện
             resetBoardUI();
+            const swapButton = document.getElementById("swap-button");
+            swapButton.disabled = false; // Kích hoạt lại nút
+            swapButton.style.opacity = "1"; // Trả lại trạng thái bình thường
         } else {
             alert("Có lỗi xảy ra khi gọi hàm reset.");
         }
@@ -280,4 +282,57 @@ async function callMoveAPI(row, col, player) {
         console.error('Lỗi:', error);
         alert("Không thể kết nối đến server.");
     }
+}
+
+async function callSwapAPI() {
+    try {
+        const response = await fetch('/api/swap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ swap: true })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                afterSwap(); // Vô hiệu hóa nút Swap sau khi thành công
+            } else {
+                alert("Swap không thành công: " + data.message);
+            }
+        } else {
+            alert("Có lỗi xảy ra khi gọi API Swap.");
+        }
+    } catch (error) {
+        console.error('Lỗi:', error);
+        alert("Không thể kết nối đến server.");
+    }
+}
+
+function afterSwap() {
+    // Chuyển trạng thái người chơi: Người chơi 2 trở thành người chơi đầu tiên
+    currentPlayer = 2;
+
+    // Vô hiệu hóa nút Swap
+    const swapButton = document.getElementById("swap-button");
+    swapButton.disabled = true; // Vô hiệu hóa nút
+    swapButton.style.opacity = "0.5"; // Làm mờ nút để hiển thị trạng thái không hoạt động
+
+    // Cập nhật chỉ báo lượt chơi
+    updateTurnIndicator();
+
+    // Vẽ lại bảng Hex để phản ánh trạng thái mới
+    resetBoardUI_afterswap();
+
+    // Hiển thị thông báo swap
+    alert(`Swap đã được thực hiện! Người chơi hiện tại: ${currentPlayer === 1 ? 'Đỏ' : 'Xanh dương'}`);
+}
+function resetBoardUI_afterswap() {
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            board[row][col] = 0; // Reset tất cả ô về trạng thái trống (0)
+        }
+    }
+    currentPlayer = 2; // Đặt lại lượt chơi về người chơi 1
+    updateTurnIndicator(); // Cập nhật chỉ báo lượt
+    redraw(); // Vẽ lại lưới lục giác
 }

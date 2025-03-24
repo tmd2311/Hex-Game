@@ -3,6 +3,8 @@ package com.example.hex_game;
 public class HexBoard {
     private  int[][] board;
     private int size;
+    private boolean swapped = false; // Kiểm tra xem đã hoán đổi chưa
+    private int currentPlayer = 1; // Người chơi hiện tại (1 hoặc 2)
 
     public HexBoard(int size) {
         this.size = size;
@@ -31,7 +33,19 @@ public class HexBoard {
         return 0;
     }
 
+    public void swap() {
+        if (!swapped) { // Kiểm tra trạng thái swap
+            swapped = true; // Đánh dấu trạng thái đã thực hiện swap
+            currentPlayer = 2; // Xác định người chơi hiện tại là người chơi thứ hai
+            System.out.println("Players swapped successfully! Player 2 becomes Player 1.");
+        } else {
+            System.out.println("Swap has already been performed.");
+        }
+    }
 
+    public boolean hasSwapped() {
+        return swapped;
+    }
 
     private boolean dfs(int row, int col, int player, boolean[] visited) {
         int index = row*size + col;
