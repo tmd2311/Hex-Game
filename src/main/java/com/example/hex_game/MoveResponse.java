@@ -10,11 +10,11 @@ public class MoveResponse {
         this.winner = winner;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
+    // Getter và Setter
+    public boolean isSuccess() { return success; }
+    public void setSuccess(boolean success) { this.success = success; }
 
-    public int getWinner() {
-        return winner;
-    }
+    public int getWinner() { return winner; }
+    public void setWinner(int winner) { this.winner = winner; }
+
 }

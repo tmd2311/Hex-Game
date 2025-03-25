@@ -12,13 +12,34 @@ public class HexBoard {
     }
 
     public boolean makeMove(int row, int col, int player) {
-        if(row >= 0 && row < size && col >= 0 && col < size && board[row][col] == 0)
-        {
-            board[row][col] = player;
-            return true;
+        // Kiểm tra tọa độ hợp lệ
+        if (row < 0 || row >= size || col < 0 || col >= size) {
+            return false; // Tọa độ không hợp lệ
         }
-        return false;
+
+        // Kiểm tra ô đã được chọn hay chưa
+        if (board[row][col] != 0) {
+            return false; // Ô đã được chọn
+        }
+
+        // Cập nhật trạng thái ô
+        board[row][col] = player;
+
+        // Vô hiệu hóa Swap nếu người chơi thứ 2 thực hiện nước đi
+        if (player == 2 && !swapped) {
+            swapped = true;
+            System.out.println("Player 2 has made a move. Swap is now disabled.");
+        }
+
+        // Kiểm tra người chiến thắng
+        int winner = checkWinner();
+        if (winner != 0) {
+            System.out.println("Player " + winner + " has won the game!");
+        }
+
+        return true; // Nước đi thành công
     }
+
 
     public int[][] getBoard() {
         return board;
@@ -34,13 +55,23 @@ public class HexBoard {
     }
 
     public void swap() {
-        if (!swapped) { // Kiểm tra trạng thái swap
-            swapped = true; // Đánh dấu trạng thái đã thực hiện swap
-            currentPlayer = 2; // Xác định người chơi hiện tại là người chơi thứ hai
-            System.out.println("Players swapped successfully! Player 2 becomes Player 1.");
-        } else {
+        if (swapped) {
             System.out.println("Swap has already been performed.");
+            return;
         }
+        // Kiểm tra xem người chơi thứ 2 đã đi chưa
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 2) { // Nếu người chơi thứ 2 đã đi
+                    System.out.println("Player 2 has already made a move. Swap is not allowed.");
+                    return;
+                }
+            }
+        }
+        // Thực hiện swap
+        swapped = true;
+        currentPlayer = 2;
+        System.out.println("Players swapped successfully! Player 2 becomes Player 1.");
     }
 
     public boolean hasSwapped() {

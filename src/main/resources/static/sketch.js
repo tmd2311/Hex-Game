@@ -1,11 +1,13 @@
-let hexSize = 20; // Kích thước của mỗi lục giác
-let cols = 11; // Số cột (mỗi hàng có 11 ô)
-let rows = 11; // Số hàng
-let dx, dy; // Khoảng cách giữa các lục giác
-let board = []; // Mảng 2D để lưu trạng thái của bảng (0: trống, 1: đỏ, 2: xanh dương)
-let currentPlayer = 1; // 1: đỏ, 2: xanh dương
-let offsetX = 50; // Dịch chuyển để căn giữa lưới
+let hexSize = 20;
+let cols = 11;
+let rows = 11;
+let dx = hexSize * Math.sqrt(3); // Khoảng cách ngang
+let dy = hexSize * 1.5; // Khoảng cách dọc
+let board = Array.from({ length: rows }, () => Array(cols).fill(0)); // Mảng 2D
+let currentPlayer = 1;
+let offsetX = 50;
 let offsetY = 50;
+
 
 function setup() {
     createCanvas(600, 500); // Tạo canvas
@@ -186,51 +188,36 @@ function drawBorder(offset, isRed) {
     }
 }
 
-// Hàm xử lý khi người chơi nhấp chuột
-function mousePressed() {
-    let mx = mouseX - offsetX;
-    let my = mouseY - offsetY;
-
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            let x = col * dx + row * (dx / 2);
-            let y = row * dy;
-            let d = dist(mx, my, x, y);
-
-            if (d < hexSize) { // Kiểm tra người chơi nhấp vào một ô
-                if (board[row][col] === 0) { // Ô trống
-                    // Gọi API move với vị trí và người chơi hiện tại
-                    callMoveAPI(row, col, currentPlayer);
-                }
-            }
-        }
-    }
-}
-
 // Hàm cập nhật chỉ báo lượt
 function updateTurnIndicator() {
-    let indicator = document.getElementById("turn-indicator");
+    const indicator = document.getElementById("turn-indicator");
+    if (!indicator) {
+        console.error("Không tìm thấy phần tử 'turn-indicator'.");
+        return;
+    }
     indicator.innerHTML = `<span style="color: ${currentPlayer === 1 ? 'red' : 'blue'}">Player: ${currentPlayer}</span>`;
+    console.log(`Indicator updated successfully: Player ${currentPlayer}`);
 }
-async function callResetAPI() {
-    try {
-        const response = await fetch('/api/reset', {
-            method: 'GET'
-        });
+function callResetAPI(event) {
+    if (event) {
+        event.stopPropagation(); // Ngăn sự kiện lan rộng
+    }
 
+    // Logic reset
+    fetch('/api/reset', {
+        method: 'GET'
+    }).then(response => {
         if (response.ok) {
-            // Làm mới bảng lưới Hex trong giao diện
-            resetBoardUI();
+            resetBoardUI(); // Làm mới giao diện
             const swapButton = document.getElementById("swap-button");
-            swapButton.disabled = false; // Kích hoạt lại nút
-            swapButton.style.opacity = "1"; // Trả lại trạng thái bình thường
+            swapButton.disabled = false;
+            swapButton.style.opacity = "1";
         } else {
             alert("Có lỗi xảy ra khi gọi hàm reset.");
         }
-    } catch (error) {
-        console.error('Lỗi:', error);
-        alert("Không thể kết nối đến server.");
-    }
+    }).catch(error => {
+        console.error("Lỗi:", error);
+    });
 }
 
 // Hàm làm mới bảng lưới Hex trong giao diện
@@ -246,41 +233,96 @@ function resetBoardUI() {
 }
 
 
+function mousePressed(event) {
+    // Ngăn sự kiện nếu nó đến từ các nút ngoài bảng
+    if (event.target.tagName === "BUTTON") {
+        console.log("Sự kiện chuột bị dừng vì đến từ nút.");
+        return;
+    }
+
+    // Tính toán tọa độ chuột trên bảng
+    let mx = mouseX - offsetX; // Lấy tọa độ chuột tương đối so với bảng Hex
+    let my = mouseY - offsetY;
+
+    let selectedRow = -1, selectedCol = -1;
+    let minDistance = Infinity;
+
+    // Duyệt qua từng ô lưới Hexagon để tìm ô gần nhất
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            // Tính toán tọa độ trung tâm của mỗi lục giác
+            let x = col * dx + row * (dx / 2);
+            let y = row * dy;
+
+            // Kiểm tra xem chuột có nằm trong lục giác không
+            let d = dist(mx, my, x, y); // Khoảng cách giữa chuột và tâm lục giác
+            if (d < hexSize && d < minDistance) {
+                selectedRow = row;
+                selectedCol = col;
+                minDistance = d; // Cập nhật ô gần nhất
+            }
+        }
+    }
+
+    // Nếu tìm thấy ô lục giác hợp lệ
+    if (selectedRow !== -1 && selectedCol !== -1) {
+        console.log(`Ô lục giác được chọn: Row=${selectedRow}, Col=${selectedCol}`);
+        callMoveAPI(selectedRow, selectedCol, currentPlayer); // Gọi API xử lý nước đi
+    } else {
+        console.log("Chuột nằm ngoài tất cả các lục giác."); // Log để debug
+    }
+}
+
+function isPointInsideHexagon(mx, my, cx, cy, hexSize) {
+    for (let angle = 0; angle < 360; angle += 60) {
+        let ax = cx + hexSize * Math.cos(radians(angle));
+        let ay = cy + hexSize * Math.sin(radians(angle));
+        let bx = cx + hexSize * Math.cos(radians(angle + 60));
+        let by = cy + hexSize * Math.sin(radians(angle + 60));
+
+        let crossProduct = (mx - ax) * (by - ay) - (my - ay) * (bx - ax);
+        if (crossProduct < 0) {
+            return false; // Điểm nằm ngoài lục giác
+        }
+    }
+    return true; // Điểm nằm trong lục giác
+}
+
+function radians(degrees) {
+    return (degrees * Math.PI) / 180;
+}
+
 async function callMoveAPI(row, col, player) {
-    const moveRequest = {
-        row: row,         // Dòng người chơi muốn di chuyển
-        col: col,         // Cột người chơi muốn di chuyển
-        player: player    // Người chơi hiện tại (1: đỏ, 2: xanh dương)
-    };
+    const moveRequest = { row, col, player };
 
     try {
         const response = await fetch('/api/move', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(moveRequest)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(moveRequest) // Gửi tọa độ và người chơi hiện tại
         });
 
         if (response.ok) {
-            const moveResponse = await response.json();
-            if (moveResponse.success) {
-                board[row][col] = player; // Cập nhật trạng thái bảng
+            const data = await response.json();
+            if (data.success) {
+                // Cập nhật trạng thái bảng trên client
+                board[row][col] = player;
                 currentPlayer = (player === 1) ? 2 : 1; // Chuyển lượt
-                updateTurnIndicator(); // Cập nhật chỉ báo lượt
-                redraw(); // Vẽ lại lưới
-                if (moveResponse.winner !== 0) {
-                    showWinDialog(moveResponse.winner);
+                updateTurnIndicator();
+                checkAndDisableSwap(); // Kiểm tra và vô hiệu hóa Swap nếu cần
+                redraw(); // Vẽ lại giao diện
+
+                // Kiểm tra người chiến thắng
+                if (data.winner !== 0) {
+                    console.log(`Player ${data.winner} thắng cuộc!`);
+                    showWinDialog(data.winner); // Hiển thị thông báo chiến thắng
                 }
-            } else {
-                alert("Nước đi không hợp lệ. Hãy thử lại!");
             }
         } else {
-            alert("Có lỗi xảy ra khi gọi API move.");
+            alert("Có lỗi xảy ra khi gọi API. Mã trạng thái: " + response.status);
         }
     } catch (error) {
-        console.error('Lỗi:', error);
-        alert("Không thể kết nối đến server.");
+        console.error("Lỗi kết nối:", error);
     }
 }
 
@@ -323,7 +365,8 @@ function showWinDialog(winner) {
         newGameButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
     };
     newGameButton.onclick = function() {
-        location.reload(); // Reset lại game
+        callResetAPI(); // Reset lại game
+        location.reload();
     };
     dialog.appendChild(newGameButton);
 
@@ -346,6 +389,8 @@ function showWinDialog(winner) {
         backButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
     };
     backButton.onclick = function() {
+        callResetAPI();
+        location.reload();
         window.location.href = "home.html"; // Điều hướng về trang chủ
     };
     dialog.appendChild(backButton);
@@ -383,17 +428,29 @@ function afterSwap() {
 
     // Vô hiệu hóa nút Swap
     const swapButton = document.getElementById("swap-button");
-    swapButton.disabled = true; // Vô hiệu hóa nút
-    swapButton.style.opacity = "0.5"; // Làm mờ nút để hiển thị trạng thái không hoạt động
-
+    if (swapButton) {
+        swapButton.disabled = true; // Vô hiệu hóa nút
+        swapButton.style.opacity = "0.5"; // Làm mờ nút để hiển thị trạng thái không hoạt động
+    }
     // Cập nhật chỉ báo lượt chơi
     updateTurnIndicator();
-
     // Vẽ lại bảng Hex để phản ánh trạng thái mới
     resetBoardUI_afterswap();
-
     // Hiển thị thông báo swap
-    alert(`Swap đã được thực hiện! Người chơi hiện tại: ${currentPlayer === 1 ? 'Đỏ' : 'Xanh dương'}`);
+    //alert(`Swap đã được thực hiện! Người chơi hiện tại: ${currentPlayer === 1 ? 'Đỏ' : 'Xanh dương'}`);
+}
+function checkAndDisableSwap() {
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            if (board[row][col] === 2) { // Phát hiện nước đi của người chơi thứ 2
+                const swapButton = document.getElementById("swap-button");
+                swapButton.disabled = true; // Vô hiệu hóa nút Swap
+                swapButton.style.opacity = "0.5"; // Làm mờ nút Swap
+                console.log("Player 2 has made a move. Swap is now disabled.");
+                return;
+            }
+        }
+    }
 }
 function resetBoardUI_afterswap() {
     for (let row = 0; row < rows; row++) {
@@ -404,4 +461,21 @@ function resetBoardUI_afterswap() {
     currentPlayer = 2; // Đặt lại lượt chơi về người chơi 1
     updateTurnIndicator(); // Cập nhật chỉ báo lượt
     redraw(); // Vẽ lại lưới lục giác
+}
+
+function redraw() {
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            let x = col * dx + row * (dx / 2);
+            let y = row * dy;
+
+            if (board[row][col] === 1) {
+                drawHexagon(x, y, 'red');
+            } else if (board[row][col] === 2) {
+                drawHexagon(x, y, 'blue');
+            } else {
+                drawHexagon(x, y, 'gray');
+            }
+        }
+    }
 }
