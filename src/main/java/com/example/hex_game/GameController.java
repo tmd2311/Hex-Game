@@ -64,4 +64,11 @@ public class GameController {
         }
         return ResponseEntity.ok(new SwapResponse(false, "Swap declined by player."));
     }
+
+    @PostMapping("/aimove")
+    public int[] aimove(@RequestBody int[][] board) {
+         int size = board.length;
+         HexAI ai = new HexAI(size, board);
+         return ai.getBestMove();
+    }
 }

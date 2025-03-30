@@ -44,6 +44,7 @@ public class HexBoard {
     public int[][] getBoard() {
         return board;
     }
+
     public int checkWinner() {
         for(int i = 0; i < size; i++) {
             boolean[] visited1 = new boolean[size * size];
@@ -78,7 +79,7 @@ public class HexBoard {
         return swapped;
     }
 
-    private boolean dfs(int row, int col, int player, boolean[] visited) {
+    public boolean dfs(int row, int col, int player, boolean[] visited) {
         int index = row*size + col;
         if(visited[index]) return false;
         visited[index] = true;

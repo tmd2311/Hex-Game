@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlayHex AI</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    body {
+      background-color: #2f2f2f; /* Dark background like in the image */
+      color: white;
+      font-family: Arial, sans-serif;
+      position: relative; /* Thêm dòng này */
+      margin: 0;
+      padding: 20px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    #turn-indicator {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #888;
+    }
+    .button-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px; /* Khoảng cách với board game */
+      justify-content: center; /* Căn giữa các nút */
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .button {
+      background-color: #007BFF; /* Màu nền nút */
+      border: none;
+      color: white; /* Màu chữ */
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 40px;
+      cursor: pointer;
+      border-radius: 8px; /* Bo góc */
+      transition: background-color 0.3s, transform 0.3s; /* Hiệu ứng chuyển đổi */
+    }
+    .button:hover {
+      background-color: #0056b3; /* Màu nền khi hover */
+      transform: scale(1.1); /* Phóng to khi hover */
+    }
+  </style>
+</head>
+<body>
+
+<h3>PlayHex</h3>
+<div id="turn-indicator"></div>
+
+<div class="button-container">
+  <button class="button" onclick="callResetAPI()">Reset</button>
+  <button id="swap-button" class="button" onclick="callSwapAPI()">Swap</button>
+</div>
+
+</div>
+<script src="sketch.js"></script>
+
+<script>
+  let boardSize = 11;
+  let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0)); // 0: empty, 1: player, 2: AI
+  let playerTurn = true;
+
+  function playerMove(row, col) {
+    if (!playerTurn || board[row][col] !== 0) return;
+    board[row][col] = 1;
+    updateBoard();
+    document.getElementById("turn-indicator").innerText = "AI's Turn";
+    playerTurn = false;
+    setTimeout(aiMove, 1000); // AI moves after 1 second
+  }
+
+  async function aiMove() {
+    let response = await fetch('/api/aimove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(board)
+    });
+    let aiMove = await response.json();
+    board[aiMove[0]][aiMove[1]] = 2;
+    updateBoard();
+    document.getElementById("turn-indicator").innerText = "Your Turn";
+    playerTurn = true;
+  }
+
+  function updateBoard() {
+
+  }
+
+  function resetGame() {
+    fetch('/api/reset', { method: 'GET' }).then(() => {
+      board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
+      playerTurn = true;
+      document.getElementById("turn-indicator").innerText = "Your Turn";
+      updateBoard();
+    });
+  }
+</script>
+
+</body>
+</html>
