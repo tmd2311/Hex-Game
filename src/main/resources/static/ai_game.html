@@ -69,48 +69,7 @@
 </div>
 
 </div>
-<script src="sketch.js"></script>
-
-<script>
-  let boardSize = 11;
-  let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0)); // 0: empty, 1: player, 2: AI
-  let playerTurn = true;
-
-  function playerMove(row, col) {
-    if (!playerTurn || board[row][col] !== 0) return;
-    board[row][col] = 1;
-    updateBoard();
-    document.getElementById("turn-indicator").innerText = "AI's Turn";
-    playerTurn = false;
-    setTimeout(aiMove, 1000); // AI moves after 1 second
-  }
-
-  async function aiMove() {
-    let response = await fetch('/api/aimove', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(board)
-    });
-    let aiMove = await response.json();
-    board[aiMove[0]][aiMove[1]] = 2;
-    updateBoard();
-    document.getElementById("turn-indicator").innerText = "Your Turn";
-    playerTurn = true;
-  }
-
-  function updateBoard() {
-
-  }
-
-  function resetGame() {
-    fetch('/api/reset', { method: 'GET' }).then(() => {
-      board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
-      playerTurn = true;
-      document.getElementById("turn-indicator").innerText = "Your Turn";
-      updateBoard();
-    });
-  }
-</script>
+<script src="ai_play.js"></script>
 
 </body>
 </html>

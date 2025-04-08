@@ -316,6 +316,8 @@ async function callMoveAPI(row, col, player) {
                 if (data.winner !== 0) {
                     console.log(`Player ${data.winner} thắng cuộc!`);
                     showWinDialog(data.winner); // Hiển thị thông báo chiến thắng
+                } else if (currentPlayer === 2) {
+                    getAIMove();
                 }
             }
         } else {
@@ -493,7 +495,7 @@ function sendMoveToAPI(row, col, player) {
             }
         });
 }
-
+// Đang bi sai
 function getAIMove() {
     fetch('/api/aimove', {
         method: 'POST',
@@ -502,14 +504,7 @@ function getAIMove() {
     }).then(response => response.json())
         .then(aiMove => {
             if (aiMove && aiMove.length === 2) {
-                board[aiMove[0]][aiMove[1]] = 2;
-                currentPlayer = 1;
+                callMoveAPI(aiMove[0], aiMove[1], 1)
             }
         });
-}
-function startAIGame() {
-    document.getElementById("turn-indicator").innerText = "Your Turn";
-    board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
-    playerTurn = true;
-    updateBoard();
 }

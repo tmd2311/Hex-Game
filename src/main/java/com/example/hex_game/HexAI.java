@@ -5,9 +5,10 @@ public class HexAI {
     private int[][] board;
     private HexBoard hexBoard;
 
-    public HexAI(int size, int[][] board) {
+    public HexAI(int size, int[][] board, HexBoard hexBoard) {
         this.size = size;
         this.board = board;
+        this.hexBoard = hexBoard;
     }
     private int evaluateBoard(int player) {
         int score = 0;
@@ -32,9 +33,27 @@ public class HexAI {
         return score;
     }
     private int getHexCellValue(int row, int col, int player) {
-        int center = size / 2;
-        int distanceToCenter = Math.abs(row - center) + Math.abs(col - center);
-        return (size - distanceToCenter) *10;
+        int score = 0;
+        if (player == 1){
+            score+= (size- Math.abs(col-size/2)) *15;// ưu tiên so với trung tâm
+            score =  (col == 0 || col == size - 1) ?  score+= 50 : score;
+
+        }else {
+            score+= (size- Math.abs(row-size/2)) *15;
+            score =  (row == 0 || row == size - 1) ?  score+= 50 : score;
+        }
+        int[][] direction= {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, 1}, {1, -1}};
+        int neighbour = 0;
+        for (int[] dir : direction) {
+            int newRow = row + dir[0], newCol = col + dir[1];
+            if(newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
+                if (board[newRow][newCol] == player){
+                    neighbour+=20;
+                }
+            }
+        }
+        score += neighbour;
+        return score;
     }
     private int minmax(int depth, int alpha, int beta, boolean isMaximizing) {
         if (depth == 0) return  evaluateBoard(2);
@@ -96,13 +115,13 @@ public class HexAI {
         }
         return bestMove;
     }
-    public void aiMove(){
-        int[] move = getBestMove();
-        if(move[0] != -1 ){
-            hexBoard.makeMove(move[0], move[1], 2);
-            System.out.println("AI moved at: " + move[0] + ", " + move[1]);
-        }
-    }
+//    public void aiMove(){
+//        int[] move = getBestMove();
+//        if(move[0] != -1 ){
+//            hexBoard.makeMove(move[0], move[1], 2);
+//            System.out.println("AI moved at: " + move[0] + ", " + move[1]);
+//        }
+//    }
 
 
 }

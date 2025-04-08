@@ -67,8 +67,12 @@ public class GameController {
 
     @PostMapping("/aimove")
     public int[] aimove(@RequestBody int[][] board) {
-         int size = board.length;
-         HexAI ai = new HexAI(size, board);
+        if (board == null || board.length == 0) {
+            return new int[]{-1, -1};  // Trả về lỗi thay vì crash server
+        }
+        int size = board.length;
+        HexBoard hexBoard = new HexBoard(size);
+        HexAI ai = new HexAI(size, board, hexBoard);
          return ai.getBestMove();
     }
 }
