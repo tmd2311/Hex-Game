@@ -504,7 +504,7 @@ function getAIMove() {
     }).then(response => response.json())
         .then(aiMove => {
             if (aiMove && aiMove.length === 2) {
-                callMoveAPI(aiMove[0], aiMove[1], 1)
+                callMoveAPI(aiMove[0], aiMove[1], 2)
             }
         });
 }
