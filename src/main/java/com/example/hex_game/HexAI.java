@@ -1,230 +1,278 @@
 package com.example.hex_game;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HexAI {
-    private int size;
-    private int[][] board;
-    private HexBoard hexBoard;
-    private int[][] pathProgressCache; // Cache để lưu kết quả của checkPathProgress
+    public int size;
+    public int[][] board;
+    public HexBoard hexBoard;
+    public int[][] pathProgressCache;
 
     public HexAI(int size, int[][] board, HexBoard hexBoard) {
         this.size = size;
         this.board = board;
         this.hexBoard = hexBoard;
-        this.pathProgressCache = new int[size * size][2]; // Cache: [furthestRow, furthestCol]
+        this.pathProgressCache = new int[size * size][2];
     }
 
-    // Tổng hợp đánh giá AI và đối thủ
-    private int evaluateBoard(int player) {
+    public int evaluateBoard(int player) {
         int opponent = (player == 1) ? 2 : 1;
-        int playerScore = evaluatePlayer(player);
-        int opponentScore = evaluatePlayer(opponent);
-        return playerScore - (int)(0.8 * opponentScore); // Giảm điểm nếu đối thủ mạnh
+        return evaluatePlayer(player) - (int)(0.8 * evaluatePlayer(opponent));
     }
 
-    // Kiểm tra tiến độ đường đi, trả về [furthestRow, furthestCol]
-    private int[] checkPathProgress(int row, int col, int player, boolean[] visited) {
+    // Kiểm tra tiến độ đường đi
+    public int[] checkPathProgress(int row, int col, int player, boolean[] visited) {
         int index = row * size + col;
         if (visited[index]) return new int[]{row, col};
         visited[index] = true;
 
-        // Kiểm tra cache
         if (pathProgressCache[index][0] != 0 || pathProgressCache[index][1] != 0) {
             return pathProgressCache[index];
         }
 
-        int furthestRow = row; // Đối với Player 2: tìm hàng xa nhất bên dưới
-        int furthestCol = col; // Đối với Player 1: tìm cột xa nhất bên phải
+        int furthestRow = row;
+        int furthestCol = col;
 
-        // Điều kiện dừng sớm
-        if (player == 2 && furthestRow >= size - 1) {
-            return new int[]{furthestRow, furthestCol};
-        }
-        if (player == 1 && furthestCol >= size - 1) {
-            return new int[]{furthestRow, furthestCol};
+        if (player == 2 && furthestRow >= size - 1) return new int[]{furthestRow, furthestCol};
+        if (player == 1 && furthestCol >= size - 1) return new int[]{furthestRow, furthestCol};
+
+        // Ưu tiên MẠNH MẼ cho hướng xuống dưới với Player 2
+        int[][] directions;
+        if (player == 2) {
+            directions = new int[][] {
+                    {1, 0},   // Xuống
+                    {1, -1},  // Xuống trái
+                    {0, 1},   // Phải
+                    {0, -1},  // Trái
+                    {-1, 1},  // Lên phải
+                    {-1, 0}   // Lên
+            };
+        } else {
+            directions = new int[][] {
+                    {0, 1},   // Phải
+                    {-1, 1},  // Lên phải
+                    {1, -1},  // Xuống trái
+                    {1, 0},   // Xuống
+                    {-1, 0},  // Lên
+                    {0, -1}   // Trái
+            };
         }
 
-        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, 1}, {1, -1}};
         for (int[] dir : directions) {
             int newRow = row + dir[0], newCol = col + dir[1];
             if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size && board[newRow][newCol] == player) {
                 int[] progress = checkPathProgress(newRow, newCol, player, visited);
                 furthestRow = Math.max(furthestRow, progress[0]);
                 furthestCol = Math.max(furthestCol, progress[1]);
-
-                // Điều kiện dừng sớm
                 if (player == 2 && furthestRow >= size - 1) break;
                 if (player == 1 && furthestCol >= size - 1) break;
             }
         }
 
-        // Lưu vào cache
         pathProgressCache[index] = new int[]{furthestRow, furthestCol};
         return pathProgressCache[index];
     }
 
-    // Kiểm tra chuỗi quân liên tiếp trên cùng một hàng
-    private int countConsecutiveOnRow(int row, int player) {
-        int count = 0;
-        int maxCount = 0;
+    public int countConsecutiveOnRow(int row, int player) {
+        int count = 0, maxCount = 0;
         for (int col = 0; col < size; col++) {
             if (board[row][col] == player) {
                 count++;
                 maxCount = Math.max(maxCount, count);
-            } else {
-                count = 0; // Reset nếu gặp ô không phải của player
-            }
+            } else count = 0;
         }
         return maxCount;
     }
 
-    // Kiểm tra chuỗi quân liên tiếp trên cùng một cột
-    private int countConsecutiveOnCol(int col, int player) {
-        int count = 0;
-        int maxCount = 0;
+    public int countConsecutiveOnCol(int col, int player) {
+        int count = 0, maxCount = 0;
         for (int row = 0; row < size; row++) {
             if (board[row][col] == player) {
                 count++;
                 maxCount = Math.max(maxCount, count);
-            } else {
-                count = 0; // Reset nếu gặp ô không phải của player
-            }
+            } else count = 0;
         }
         return maxCount;
     }
 
-    // Đánh giá điểm cho từng người chơi
-    private int evaluatePlayer(int player) {
+    public int evaluatePlayer(int player) {
         int score = 0;
         boolean[] visited = new boolean[size * size];
 
-        // Thưởng nếu gần thắng
+        // Kiểm tra thắng
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
-                if (board[r][c] == player) {
-                    if (player == 2 && hexBoard.dfs(r, c, 2, visited)) {
-                        score += 1000;
-                    } else if (player == 1 && hexBoard.dfs(r, c, 1, visited)) {
-                        score += 1000;
-                    }
+                if (board[r][c] == player && hexBoard.dfs(r, c, player, visited)) {
+                    return 100000; // Trả về giá trị rất cao nếu thắng
                 }
             }
         }
 
-        // Đánh giá tiến độ đường đi (tìm đường dài nhất đến biên đích)
-        int maxProgress = 0;
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                if (board[r][c] == player) {
-                    int[] progress = checkPathProgress(r, c, player, new boolean[size * size]);
-                    if (player == 2) {
-                        maxProgress = Math.max(maxProgress, progress[0]); // Player 2 quan tâm đến hàng (trên → dưới)
-                    } else {
-                        maxProgress = Math.max(maxProgress, progress[1]); // Player 1 quan tâm đến cột (trái → phải)
-                    }
-                }
-            }
-        }
-
-        // Thưởng điểm nếu đường đi gần biên đích
+        // HOÀN TOÀN THAY ĐỔI CÁCH ĐÁNH GIÁ cho Player 2
         if (player == 2) {
-            score += maxProgress * 150; // Player 2: càng gần hàng cuối càng nguy hiểm
-            if (maxProgress >= size - 2) score += 500; // Gần thắng (thiếu 1-2 ô)
+            // ===== CHIẾN LƯỢC ĐI TỪ TRÊN XUỐNG DƯỚI =====
 
-            // Thưởng thêm nếu có chuỗi quân liên tiếp trên cùng một cột
-            for (int col = 0; col < size; col++) {
-                int consecutive = countConsecutiveOnCol(col, player);
-                if (consecutive >= size - 2) score += 600; // Chuỗi dài gần thắng
-                else if (consecutive >= size - 3) score += 300; // Chuỗi khá dài
+            // 1. Tìm quân ở hàng cao nhất và thấp nhất
+            int topRow = size;
+            int bottomRow = -1;
+            for (int r = 0; r < size; r++) {
+                for (int c = 0; c < size; c++) {
+                    if (board[r][c] == player) {
+                        topRow = Math.min(topRow, r);
+                        bottomRow = Math.max(bottomRow, r);
+                    }
+                }
+            }
+
+            // 2. Tính toán tiến độ từ trên xuống dưới
+            if (bottomRow >= 0) {
+                double verticalProgress = (double)bottomRow / (size - 1);
+                score += verticalProgress * 2000; // Điểm RẤT CAO cho tiến độ theo chiều dọc
+
+                // Bonus rất lớn khi gần đến đích
+                if (bottomRow >= size-2) {
+                    score += 3000;
+                } else if (bottomRow >= size-3) {
+                    score += 1500;
+                }
+            }
+
+            // 3. Phạt MẠNH MẼ cho quân đi ngang (theo hàng)
+            for (int r = 0; r < size; r++) {
+                int horizontalRun = countConsecutiveOnRow(r, player);
+                if (horizontalRun > 2) {
+                    score -= horizontalRun * 500; // Phạt nặng cho chuỗi ngang
+                }
+            }
+
+            // 4. Thưởng RẤT CAO cho chuỗi dọc
+            for (int c = 0; c < size; c++) {
+                int verticalRun = countConsecutiveOnCol(c, player);
+                if (verticalRun >= 2) {
+                    score += verticalRun * 1000; // Thưởng rất cao cho chuỗi dọc
+                }
+            }
+
+            // 5. Thưởng cao cho quân ở cột giữa
+            int centerCol = size / 2;
+            for (int r = 0; r < size; r++) {
+                for (int c = 0; c < size; c++) {
+                    if (board[r][c] == player) {
+                        // Thưởng cho quân gần cột giữa
+                        score += (size - Math.abs(c - centerCol)) * 50;
+
+                        // Thưởng LỚN nếu quân ở hàng dưới
+                        score += r * 150;
+                    }
+                }
+            }
+
+            // 6. Thưởng cho kết nối giữa quân trên cùng và dưới cùng
+            if (topRow < size && bottomRow >= 0 && bottomRow - topRow > 0) {
+                // Nếu có kết nối từ trên xuống dưới
+                for (int c = 0; c < size; c++) {
+                    boolean hasConnectionPath = false;
+                    boolean[] pathVisited = new boolean[size * size];
+                    for (int r = 0; r < size; r++) {
+                        if (board[r][c] == player) {
+                            int[] progress = checkPathProgress(r, c, player, pathVisited);
+                            if (progress[0] - r >= 2) { // Có đường đi ít nhất 3 ô theo chiều dọc
+                                hasConnectionPath = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasConnectionPath) {
+                        score += 1000; // Thưởng cao cho đường kết nối
+                    }
+                }
             }
         } else {
-            score += maxProgress * 150; // Player 1: càng gần cột cuối càng nguy hiểm
-            if (maxProgress >= size - 2) score += 500;
+            // Đánh giá cho Player 1 (ít thay đổi)
 
-            // Thưởng thêm nếu có chuỗi quân liên tiếp trên cùng một hàng
+            // Tìm tiến độ theo chiều ngang
+            int maxProgress = 0;
+            for (int r = 0; r < size; r++) {
+                for (int c = 0; c < size; c++) {
+                    if (board[r][c] == player) {
+                        int[] progress = checkPathProgress(r, c, player, new boolean[size * size]);
+                        maxProgress = Math.max(maxProgress, progress[1]);
+                    }
+                }
+            }
+
+            score += maxProgress * 300;
+
+            // Đánh giá đường thẳng liên tục
             for (int row = 0; row < size; row++) {
                 int consecutive = countConsecutiveOnRow(row, player);
-                if (consecutive >= size - 2) score += 600; // Chuỗi dài gần thắng
-                else if (consecutive >= size - 3) score += 300; // Chuỗi khá dài
-            }
-        }
-
-        // Cộng điểm từng ô
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                if (board[r][c] == player) {
-                    score += getHexCellValue(r, c, player);
-                }
+                if (consecutive >= size / 2) score += consecutive * 100;
+                else if (consecutive >= 2) score += consecutive * 40;
             }
         }
 
         return score;
     }
 
-    // Heuristic cho 1 ô: ưu tiên trung tâm, gần nhau, gần biên chiến thắng
-    private int getHexCellValue(int row, int col, int player) {
+    public int getHexCellValue(int row, int col, int player) {
         int score = 0;
+        int center = size / 2;
 
-        // Ưu tiên trung tâm
-        int centerScore = (size - Math.abs(row - size/2)) + (size - Math.abs(col - size/2));
-        score += centerScore * 10;
-
-        // Ưu tiên gần biên chiến thắng, nhưng giảm điểm nếu đối thủ có chuỗi dài
-        int opponent = (player == 1) ? 2 : 1;
-        boolean opponentHasLongChain = false;
-        if (opponent == 1) {
-            for (int r = 0; r < size; r++) {
-                if (countConsecutiveOnRow(r, opponent) >= 2) { // Giảm ngưỡng xuống 2
-                    opponentHasLongChain = true;
-                    break;
-                }
+        if (player == 2) {
+            // Phạt cho các ô ở hàng trên
+            if (row < size / 3) {
+                score -= 500;
             }
+
+            // Thưởng cao cho các ô hàng dưới
+            if (row >= size * 2 / 3) {
+                score += 500;
+            }
+
+            // Ưu tiên các ô ở cột giữa
+            score += (size - Math.abs(col - center)) * 30;
         } else {
-            for (int c = 0; c < size; c++) {
-                if (countConsecutiveOnCol(c, opponent) >= 2) { // Giảm ngưỡng xuống 2
-                    opponentHasLongChain = true;
-                    break;
-                }
-            }
+            // Logic cho Player 1 (ít thay đổi)
+            score += (size - Math.abs(col - center)) * 10;
+            score += (size - Math.abs(row - center)) * 10;
         }
 
-        if (!opponentHasLongChain) {
-            if (player == 2 && (row == 0 || row == size - 1)) score += 50; // Player 2: trên → dưới
-            if (player == 1 && (col == 0 || col == size - 1)) score += 50; // Player 1: trái → phải
-        }
-
-        // Ưu tiên gần ô cùng màu
-        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, 1}, {1, -1}};
-        int connectedBonus = 0;
-        for (int[] dir : directions) {
-            int newRow = row + dir[0], newCol = col + dir[1];
-            if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
-                if (board[newRow][newCol] == player) {
-                    connectedBonus += 20;
-                }
-            }
-        }
-
-        score += connectedBonus;
         return score;
     }
 
-    // Thuật toán Minimax có alpha-beta pruning
-    private int minmax(int depth, int alpha, int beta, boolean isMaximizing) {
-        if (depth == 0) return evaluateBoard(2); // AI là Player 2
+    public int minmax(int depth, int alpha, int beta, boolean isMaximizing) {
+        // Kiểm tra nhanh xem đã có ai thắng chưa
+        boolean player1Win = checkPlayerWin(1);
+        boolean player2Win = checkPlayerWin(2);
+
+        if (player2Win) return 10000;
+        if (player1Win) return -10000;
+        if (depth == 0) return evaluateBoard(2);
 
         if (isMaximizing) {
             int maxEval = Integer.MIN_VALUE;
+            // Ưu tiên đi theo chiều dọc
+            List<int[]> sortedMoves = new ArrayList<>();
             for (int row = 0; row < size; row++) {
                 for (int col = 0; col < size; col++) {
                     if (board[row][col] == 0) {
-                        board[row][col] = 2; // AI move
-                        int eval = minmax(depth - 1, alpha, beta, false);
-                        board[row][col] = 0;
-                        maxEval = Math.max(maxEval, eval);
-                        alpha = Math.max(alpha, eval);
-                        if (beta <= alpha) return maxEval;
+                        sortedMoves.add(new int[]{row, col});
                     }
                 }
+            }
+
+            // Sắp xếp nước đi theo ưu tiên: hàng cao trước (gần dưới)
+            sortedMoves.sort((a, b) -> Integer.compare(b[0], a[0]));
+
+            for (int[] move : sortedMoves) {
+                int row = move[0], col = move[1];
+                board[row][col] = 2;
+                int eval = minmax(depth - 1, alpha, beta, false);
+                board[row][col] = 0;
+                maxEval = Math.max(maxEval, eval);
+                alpha = Math.max(alpha, eval);
+                if (beta <= alpha) break;
             }
             return maxEval;
         } else {
@@ -232,12 +280,12 @@ public class HexAI {
             for (int row = 0; row < size; row++) {
                 for (int col = 0; col < size; col++) {
                     if (board[row][col] == 0) {
-                        board[row][col] = 1; // Human move
+                        board[row][col] = 1;
                         int eval = minmax(depth - 1, alpha, beta, true);
                         board[row][col] = 0;
                         minEval = Math.min(minEval, eval);
                         beta = Math.min(beta, eval);
-                        if (beta <= alpha) return minEval;
+                        if (beta <= alpha) break;
                     }
                 }
             }
@@ -245,235 +293,33 @@ public class HexAI {
         }
     }
 
-    // Tìm nước đi tốt nhất cho AI
-    public int[] getBestMove() {
-        int bestScore = Integer.MIN_VALUE;
-        int[] bestMove = {-1, -1};
+    // Hàm kiểm tra win
+    private boolean checkPlayerWin(int player) {
+        boolean[] visited = new boolean[size * size];
 
-        // Reset cache trước khi tìm nước đi mới
-        pathProgressCache = new int[size * size][2];
-
-        // Ưu tiên chặn nếu đối thủ (Player 1) sắp thắng
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0) {
-                    if (hexBoard.willWinIfMove(row, col, 1)) {
-                        System.out.println("Chặn nước thắng ngay lập tức của Player 1 tại: " + row + "," + col);
-                        return new int[]{row, col}; // Chặn thắng ngay lập tức
-                    }
+        if (player == 1) {
+            // Kiểm tra từ cột trái sang phải
+            for (int r = 0; r < size; r++) {
+                if (board[r][0] == player && hexBoard.dfs(r, 0, player, visited)) {
+                    return true;
                 }
             }
-        }
-
-        // Kiểm tra chuỗi quân liên tiếp trên cùng một hàng để chặn đường của Player 1 (trái → phải)
-        for (int row = 0; row < size; row++) {
-            int consecutive = countConsecutiveOnRow(row, 1); // Đếm chuỗi của Player 1 trên hàng
-            if (consecutive >= 2) { // Giảm ngưỡng xuống 2 để chặn sớm
-                // Tìm ô đầu và ô cuối của chuỗi
-                int firstCol = -1, lastCol = -1;
-                for (int col = 0; col < size; col++) {
-                    if (board[row][col] == 1) {
-                        if (firstCol == -1) firstCol = col;
-                        lastCol = col;
-                    }
-                }
-                // Kiểm tra các ô lân cận để chặn
-                if (firstCol != -1 && lastCol != -1) {
-                    // Tính khoảng cách đến biên chiến thắng của Player 1 (cột 0 và cột 4)
-                    int distToLeftBorder = firstCol; // Khoảng cách từ ô đầu đến cột 0
-                    int distToRightBorder = (size - 1) - lastCol; // Khoảng cách từ ô cuối đến cột 4
-
-                    // Ưu tiên chặn đầu gần biên chiến thắng hơn
-                    if (distToRightBorder <= distToLeftBorder) { // Cuối chuỗi gần cột 4 hơn
-                        if (lastCol < size - 1 && board[row][lastCol + 1] == 0) {
-                            System.out.println("Chặn cuối chuỗi (gần biên cột 4) của Player 1 tại: " + row + "," + (lastCol + 1));
-                            return new int[]{row, lastCol + 1};
-                        } else if (firstCol > 0 && board[row][firstCol - 1] == 0) {
-                            System.out.println("Chặn đầu chuỗi của Player 1 tại: " + row + "," + (firstCol - 1));
-                            return new int[]{row, firstCol - 1};
-                        }
-                    } else { // Đầu chuỗi gần cột 0 hơn
-                        if (firstCol > 0 && board[row][firstCol - 1] == 0) {
-                            System.out.println("Chặn đầu chuỗi (gần biên cột 0) của Player 1 tại: " + row + "," + (firstCol - 1));
-                            return new int[]{row, firstCol - 1};
-                        } else if (lastCol < size - 1 && board[row][lastCol + 1] == 0) {
-                            System.out.println("Chặn cuối chuỗi của Player 1 tại: " + row + "," + (lastCol + 1));
-                            return new int[]{row, lastCol + 1};
-                        }
-                    }
-                }
-            }
-        }
-
-        // Kiểm tra chuỗi quân liên tiếp trên cùng một cột để chặn đường của Player 1 (nếu cần)
-        for (int col = 0; col < size; col++) {
-            int consecutive = countConsecutiveOnCol(col, 1); // Đếm chuỗi của Player 1 trên cột
-            if (consecutive >= 2) { // Giảm ngưỡng xuống 2
-                // Tìm ô đầu và ô cuối của chuỗi
-                int firstRow = -1, lastRow = -1;
-                for (int row = 0; row < size; row++) {
-                    if (board[row][col] == 1) {
-                        if (firstRow == -1) firstRow = row;
-                        lastRow = row;
-                    }
-                }
-                // Tính khoảng cách đến biên chiến thắng của Player 2 (hàng 0 và hàng 4)
-                int distToTopBorder = firstRow; // Khoảng cách từ ô đầu đến hàng 0
-                int distToBottomBorder = (size - 1) - lastRow; // Khoảng cách từ ô cuối đến hàng 4
-
-                // Ưu tiên chặn đầu gần biên chiến thắng hơn
-                if (distToBottomBorder <= distToTopBorder) { // Cuối chuỗi gần hàng 4 hơn
-                    if (lastRow < size - 1 && board[lastRow + 1][col] == 0) {
-                        System.out.println("Chặn cuối chuỗi trên cột (gần biên hàng 4) của Player 1 tại: " + (lastRow + 1) + "," + col);
-                        return new int[]{lastRow + 1, col};
-                    } else if (firstRow > 0 && board[firstRow - 1][col] == 0) {
-                        System.out.println("Chặn đầu chuỗi trên cột của Player 1 tại: " + (firstRow - 1) + "," + col);
-                        return new int[]{firstRow - 1, col};
-                    }
-                } else { // Đầu chuỗi gần hàng 0 hơn
-                    if (firstRow > 0 && board[firstRow - 1][col] == 0) {
-                        System.out.println("Chặn đầu chuỗi trên cột (gần biên hàng 0) của Player 1 tại: " + (firstRow - 1) + "," + col);
-                        return new int[]{firstRow - 1, col};
-                    } else if (lastRow < size - 1 && board[lastRow + 1][col] == 0) {
-                        System.out.println("Chặn cuối chuỗi trên cột của Player 1 tại: " + (lastRow + 1) + "," + col);
-                        return new int[]{lastRow + 1, col};
-                    }
-                }
-            }
-        }
-
-        // Tính trước các đường gần thắng của Player 1
-        int maxProgressPlayer1 = 0;
-        for (int r = 0; r < size; r++) {
+        } else {
+            // Kiểm tra từ hàng trên xuống dưới
             for (int c = 0; c < size; c++) {
-                if (board[r][c] == 1) {
-                    int[] pathProgress = checkPathProgress(r, c, 1, new boolean[size * size]);
-                    maxProgressPlayer1 = Math.max(maxProgressPlayer1, pathProgress[1]); // Player 1 quan tâm đến cột
+                if (board[0][c] == player && hexBoard.dfs(0, c, player, visited)) {
+                    return true;
                 }
             }
         }
 
-        // Ưu tiên chặn các ô nằm trên đường gần thắng của Player 1
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0 && maxProgressPlayer1 >= size - 3) { // Giảm ngưỡng để nhạy hơn
-                    // Giả lập Player 1 đi ở ô này
-                    board[row][col] = 1;
-                    int progress = 0;
-                    for (int r = 0; r < size; r++) {
-                        for (int c = 0; c < size; c++) {
-                            if (board[r][c] == 1) {
-                                int[] pathProgress = checkPathProgress(r, c, 1, new boolean[size * size]);
-                                progress = Math.max(progress, pathProgress[1]); // Player 1 quan tâm đến cột
-                            }
-                        }
-                    }
-                    board[row][col] = 0;
-
-                    // Nếu ô này giúp Player 1 gần thắng (chỉ thiếu 1 ô)
-                    if (progress >= size - 1) {
-                        System.out.println("Chặn ô trên đường gần thắng của Player 1 tại: " + row + "," + col);
-                        return new int[]{row, col};
-                    }
-                }
-            }
-        }
-
-        // Tính trước các đường gần thắng của AI (Player 2)
-        int maxProgressPlayer2 = 0;
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                if (board[r][c] == 2) {
-                    int[] pathProgress = checkPathProgress(r, c, 2, new boolean[size * size]);
-                    maxProgressPlayer2 = Math.max(maxProgressPlayer2, pathProgress[0]); // Player 2 quan tâm đến hàng
-                }
-            }
-        }
-
-        // Ưu tiên đi vào các ô nằm trên đường gần thắng của Player 2 (AI tự bảo vệ)
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0 && maxProgressPlayer2 >= size - 3) { // Giảm ngưỡng để nhạy hơn
-                    // Giả lập Player 2 đi ở ô này
-                    board[row][col] = 2;
-                    int progress = 0;
-                    for (int r = 0; r < size; r++) {
-                        for (int c = 0; c < size; c++) {
-                            if (board[r][c] == 2) {
-                                int[] pathProgress = checkPathProgress(r, c, 2, new boolean[size * size]);
-                                progress = Math.max(progress, pathProgress[0]); // Player 2 quan tâm đến hàng
-                            }
-                        }
-                    }
-                    board[row][col] = 0;
-
-                    // Nếu ô này giúp Player 2 gần thắng (chỉ thiếu 1 ô)
-                    if (progress >= size - 1) {
-                        System.out.println("Tự bảo vệ: Đi vào ô trên đường gần thắng của Player 2 tại: " + row + "," + col);
-                        return new int[]{row, col};
-                    }
-                }
-            }
-        }
-
-        // Ưu tiên chặn nếu ô trống có nhiều ô của Player 1 xung quanh
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0) {
-                    int adjacentCount = 0;
-                    int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, 1}, {1, -1}};
-                    for (int[] dir : directions) {
-                        int newRow = row + dir[0], newCol = col + dir[1];
-                        if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size && board[newRow][newCol] == 1) {
-                            adjacentCount++;
-                        }
-                    }
-                    if (adjacentCount >= 2) { // Nếu có từ 2 ô của Player 1 xung quanh
-                        System.out.println("Chặn ô nguy hiểm của Player 1 tại: " + row + "," + col);
-                        return new int[]{row, col};
-                    }
-                }
-            }
-        }
-
-        // Ưu tiên chặn nếu đối thủ (Player 1) có bước tiến tốt
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0) {
-                    // Giả lập Player 1 đi
-                    board[row][col] = 1;
-                    int score = evaluateBoard(1); // Tính điểm nếu Player 1 đi ở đây
-                    board[row][col] = 0;
-
-                    // Nếu điểm tăng mạnh → đối thủ có bước đi tốt → chặn!
-                    if (score > 300) { // Giảm ngưỡng để nhạy hơn
-                        System.out.println("Chặn trước nước nguy hiểm của Player 1 tại: " + row + "," + col);
-                        return new int[]{row, col};
-                    }
-                }
-            }
-        }
-
-        // Nếu không cần chặn, dùng Minimax để tìm nước đi tốt nhất
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                if (board[row][col] == 0) {
-                    board[row][col] = 2; // AI thử nước đi
-                    int moveScore = minmax(3, Integer.MIN_VALUE, Integer.MAX_VALUE, false); // Độ sâu 3
-                    board[row][col] = 0;
-
-                    if (moveScore > bestScore) {
-                        bestScore = moveScore;
-                        bestMove = new int[]{row, col};
-                    }
-                }
-            }
-        }
-
-        return bestMove;
+        return false;
     }
 
-    // Hàm gọi AI chơi
+    public int[] getBestMove() {
+        return new HexAIMoveSelector(size, board, hexBoard, this).findBestMove();
+    }
+
     public void aiMove() {
         int[] move = getBestMove();
         if (move[0] != -1) {
