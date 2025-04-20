@@ -10,25 +10,39 @@ let offsetY = 50;
 
 
 function setup() {
-    createCanvas(600, 500); // Tạo canvas
-    background(255);
+    hexSize = 20; // Kích thước của lục giác
+    rows = 11; // Số hàng của lưới
+    cols = 11; // Số cột của lưới
+
     dx = hexSize * sqrt(3); // Khoảng cách ngang giữa các tâm lục giác
     dy = hexSize * 1.5; // Khoảng cách dọc giữa các tâm lục giác
 
-    // Khởi tạo bảng
+    let gridWidth = cols * dx; // Chiều rộng của lưới lục giác
+    let gridHeight = rows * dy; // Chiều cao của lưới lục giác
+
+    // Tăng kích thước canvas để thêm khoảng trống bên phải
+    let canvasWidth = gridWidth + 2 + dx; // Thêm khoảng dư để các ô không bị cắt
+    let canvasHeight = gridHeight + 2 * dy; // Thêm khoảng dư trên và dưới
+
+    createCanvas(canvasWidth + 200, canvasHeight + 50); // Tạo canvas lớn hơn
+
+    // Điều chỉnh offset để căn giữa và dịch lưới xuống thấp hơn
+    offsetX = (canvasWidth - gridWidth) / 2 + 35; // Giữ căn giữa ngang
+    offsetY = (canvasHeight - gridHeight) / 2 + 35; // Dịch xuống thêm chút
+
+    board = [];
     for (let row = 0; row < rows; row++) {
         board[row] = [];
         for (let col = 0; col < cols; col++) {
-            board[row][col] = 0; // 0 nghĩa là ô trống
+            board[row][col] = 0; // Khởi tạo trạng thái ô (trống)
         }
     }
-    // Cập nhật chỉ báo lượt
     updateTurnIndicator();
 }
 
+
 function draw() {
-    //background(47, 47, 47); // Nền tối
-    background(255,255,255);
+    background(255,255,255); // Nền trang
     translate(offsetX, offsetY); // Dịch chuyển để căn giữa
 
     // Vẽ lưới lục giác
@@ -49,12 +63,6 @@ function draw() {
 
 // Hàm vẽ một lục giác tại vị trí (x, y)
 function drawHexagon(x, y, fillColor) {
-    // Luôn tô màu nền cho ô, nếu không có fillColor thì dùng màu sáng
-    if (!fillColor) {
-        fill(255); // Màu sáng cho ô trống
-    } else {
-        noFill(); // Tránh tô lớp ngoài nếu có fill bên trong
-    }
     beginShape();
     for (let i = 0; i < 6; i++) {
         let angle = radians(60 * i + 90); // Xoay 90 độ
@@ -87,7 +95,7 @@ function drawHexGrid() {
             let y = row * dy;
 
             // Xác định màu tô dựa trên trạng thái ô
-            let fillColor = null;
+            let fillColor = (255,255,255);
             if (board[row][col] === 1) {
                 fillColor = color(255, 0, 0); // Đỏ
             } else if (board[row][col] === 2) {
@@ -95,12 +103,9 @@ function drawHexGrid() {
             }
 
             // Vẽ lục giác
-            //stroke(100); // Viền xám cho lưới
-            //strokeWeight(1);
-            //fill(50); // Màu nền của ô trống
-            stroke(180);        // Viền sáng hơn
+            stroke(100); // Viền xám cho lưới
             strokeWeight(1);
-            fill(220);          // Ô trống sáng hơn
+            fill(50); // Màu nền của ô trống
             drawHexagon(x, y, fillColor);
         }
     }
@@ -347,67 +352,80 @@ function showWinDialog(winner) {
     dialog.style.top = "50%";
     dialog.style.left = "50%";
     dialog.style.transform = "translate(-50%, -50%)";
-    dialog.style.background = "black";
-    dialog.style.borderRadius = "20px";
-    dialog.style.padding = "20px";
-    dialog.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+    dialog.style.background = "linear-gradient(to bottom right, #f5f5f5, #dcdcdc)"; // Gradient nhẹ nhàng, hiện đại
+    dialog.style.borderRadius = "15px";
+    dialog.style.padding = "40px";
+    dialog.style.width = "400px";
+    dialog.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.2)"; // Hiệu ứng bóng nhẹ
     dialog.style.textAlign = "center";
 
     // Tiêu đề thông báo
     let title = document.createElement("h2");
-    title.innerText = `NGƯỜI CHƠI SỐ ${winner} THẮNG`;
-    title.style.marginBottom = "50px";
+    title.innerText = `NGƯỜI CHƠI SỐ ${winner} THẮNG! 🎉`;
+    title.style.color = "#3b3b3b"; // Màu xám đậm hài hòa
+    title.style.marginBottom = "25px";
+    title.style.fontSize = "26px";
+    title.style.fontWeight = "bold";
     dialog.appendChild(title);
+
+    // Tạo container cho các nút để xếp theo hàng dọc
+    let buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.flexDirection = "column";
+    buttonContainer.style.gap = "20px";
+    buttonContainer.style.alignItems = "center";
 
     // Nút NEW GAME
     let newGameButton = document.createElement("button");
     newGameButton.innerText = "NEW GAME";
-    newGameButton.style.display = "block";
-    newGameButton.style.margin = "30px auto";
-    newGameButton.style.padding = "10px 20px";
+    newGameButton.style.padding = "12px 30px";
     newGameButton.style.fontSize = "18px";
     newGameButton.style.border = "none";
-    newGameButton.style.borderRadius = "8px";
-    newGameButton.style.backgroundColor = "#007BFF";
+    newGameButton.style.borderRadius = "10px";
+    newGameButton.style.backgroundColor = "#4facfe"; // Màu xanh gradient dịu mắt
     newGameButton.style.color = "white";
     newGameButton.style.cursor = "pointer";
-    newGameButton.onmouseover = function() {
-        newGameButton.style.backgroundColor = "#0056b3"; // Màu khi hover
+    newGameButton.style.transition = "all 0.3s ease-in-out";
+    newGameButton.onmouseover = function () {
+        newGameButton.style.backgroundColor = "#007BFF"; // Xanh đậm hơn khi hover
+        newGameButton.style.transform = "scale(1.1)";
     };
-    newGameButton.onmouseout = function() {
-        newGameButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
+    newGameButton.onmouseout = function () {
+        newGameButton.style.backgroundColor = "#4facfe";
+        newGameButton.style.transform = "scale(1)";
     };
-    newGameButton.onclick = function() {
+    newGameButton.onclick = function () {
         callResetAPI(); // Reset lại game
         location.reload();
     };
-    dialog.appendChild(newGameButton);
+    buttonContainer.appendChild(newGameButton);
 
-// Nút BACK TO HOME
+    // Nút BACK TO HOME
     let backButton = document.createElement("button");
     backButton.innerText = "BACK TO HOME";
-    backButton.style.display = "block";
-    backButton.style.margin = "10px auto";
-    backButton.style.padding = "10px 20px";
+    backButton.style.padding = "12px 30px";
     backButton.style.fontSize = "18px";
     backButton.style.border = "none";
-    backButton.style.borderRadius = "8px";
-    backButton.style.backgroundColor = "#007BFF";
+    backButton.style.borderRadius = "10px";
+    backButton.style.backgroundColor = "#f0932b"; // Màu cam dịu phù hợp với giao diện
     backButton.style.color = "white";
     backButton.style.cursor = "pointer";
-    backButton.onmouseover = function() {
-        backButton.style.backgroundColor = "#0056b3"; // Màu khi hover
+    backButton.style.transition = "all 0.3s ease-in-out";
+    backButton.onmouseover = function () {
+        backButton.style.backgroundColor = "#e17055"; // Cam đậm hơn khi hover
+        backButton.style.transform = "scale(1.1)";
     };
-    backButton.onmouseout = function() {
-        backButton.style.backgroundColor = "#007BFF"; // Quay lại màu gốc
+    backButton.onmouseout = function () {
+        backButton.style.backgroundColor = "#f0932b";
+        backButton.style.transform = "scale(1)";
     };
-    backButton.onclick = function() {
+    backButton.onclick = function () {
         callResetAPI();
-        location.reload();
-        window.location.href = "home.html"; // Điều hướng về trang chủ
+        window.location.href = "home.html";
     };
-    dialog.appendChild(backButton);
+    buttonContainer.appendChild(backButton);
 
+    dialog.appendChild(buttonContainer); // Thêm các nút vào dialog
     document.body.appendChild(dialog);
 }
 

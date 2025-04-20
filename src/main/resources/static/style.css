@@ -1,9 +1,9 @@
 body {
-    background: linear-gradient(to bottom, #1a273b, #324963);
+    background: linear-gradient(to bottom, #ffffff, #f0f0f0); /* Gradient sáng */
     font-family: 'Montserrat', sans-serif;
     margin: 0;
     padding: 0;
-    color: #ffffff;
+    color: #000000; /* Chữ màu đen */
     background-size: cover;
     background-attachment: fixed;
 }
@@ -15,8 +15,8 @@ body {
     font-size: 3.5rem;
     font-weight: 700;
     text-transform: uppercase;
-    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
-    color: #ffcc00;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Bóng nhẹ hơn cho nền sáng */
+    color: #333333; /* Màu tiêu đề tối hơn */
 }
 .button-group {
     display: flex;
@@ -26,21 +26,23 @@ body {
     margin-top: 30px;
 }
 .menu-button {
-    background: linear-gradient(to right, #ffcc00, #ff9900);
-    color: #000000;
+    background: linear-gradient(to right, #ff9a9e, #fad0c4); /* Gradient hồng cam mềm mại */
+    color: #ffffff; /* Chữ màu trắng nổi bật */
     padding: 15px 40px;
-    border: none;
+    border: 1px solid rgba(255, 153, 153, 0.5); /* Viền mềm mại */
     border-radius: 50px;
     font-size: 1.5rem;
     font-weight: 600;
     margin: 15px;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(255, 153, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 153, 153, 0.5); /* Hiệu ứng nổi */
     transition: all 0.4s ease;
 }
+
 .menu-button:hover {
-    background: linear-gradient(to right, #ff9900, #ffcc00);
-    transform: scale(1.1);
+    background: linear-gradient(to right, #fad0c4, #ff9a9e); /* Đổi hướng gradient khi hover */
+    transform: scale(1.05); /* Phóng to nhẹ */
+    box-shadow: 0 8px 20px rgba(255, 153, 153, 0.75); /* Tăng hiệu ứng nổi */
 }
 .dialog {
     position: fixed;

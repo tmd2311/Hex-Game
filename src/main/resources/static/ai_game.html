@@ -6,56 +6,77 @@
   <title>PlayHex with AI</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
+    /* Tổng thể */
     body {
-      background-color: #2f2f2f; /* Dark background like in the image */
-      color: white;
-      font-family: Arial, sans-serif;
-      position: relative; /* Thêm dòng này */
+      background: radial-gradient(circle, #f7f7f7, #e0e0e0); /* Gradient nền sáng */
+      color: #333333;
+      font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
     }
+
+    /* Canvas */
     canvas {
-      display: block;
-      margin: 0 auto;
-      background-color: #ffffff;
+      margin: 20px auto;
+      background-color: #ffffff; /* Nền canvas trắng */
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng nhẹ */
     }
-    #turn-indicator {
-      text-align: center;
-      font-size: 20px;
-      margin-top: 10px;
-    }
+
+    /* Tiêu đề */
     h3 {
-      margin: 0;
-      font-size: 18px;
-      color: #888;
+      margin: 10px 0;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      color: #007BFF;
+      cursor: pointer;
     }
+
+    h3:hover {
+      text-decoration: underline;
+    }
+
+    /* Hướng dẫn */
+    #turn-indicator {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    /* Container cho nút */
     .button-container {
       display: flex;
       gap: 10px;
-      margin-top: 20px; /* Khoảng cách với board game */
+      margin-top: 15px; /* Kéo gần với board game */
       justify-content: center; /* Căn giữa các nút */
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
     }
+
+    /* Nút bấm */
     .button {
-      background-color: #007BFF; /* Màu nền nút */
+      background: linear-gradient(to right, #4facfe, #00f2fe); /* Gradient xanh dịu */
       border: none;
-      color: white; /* Màu chữ */
-      padding: 10px 20px;
+      color: white;
+      padding: 12px 30px;
       text-align: center;
       text-decoration: none;
-      display: inline-block;
       font-size: 16px;
-      margin: 10px 40px;
+      font-weight: bold;
+      border-radius: 8px;
       cursor: pointer;
-      border-radius: 8px; /* Bo góc */
-      transition: background-color 0.3s, transform 0.3s; /* Hiệu ứng chuyển đổi */
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
+
     .button:hover {
-      background-color: #0056b3; /* Màu nền khi hover */
-      transform: scale(1.1); /* Phóng to khi hover */
+      background: linear-gradient(to left, #00f2fe, #4facfe);
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
@@ -68,9 +89,6 @@
 <div class="button-container">
   <button class="button" onclick="callResetAPI()">Reset</button>
   <button id="swap-button" class="button" onclick="callSwapAPI()">Swap</button>
-  <!-- Nút Home mới thêm -->
-</div>
-
 </div>
 <script src="ai_play.js"></script>
 <script>
