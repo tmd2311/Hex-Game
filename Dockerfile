@@ -1,12 +1,12 @@
-FROM openjdk:17-jdk-slim
-
+# Stage 1: Build ứng dụng
+FROM maven:3.8.5-openjdk-17-slim AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy file jar vào container
-COPY target/hex-game-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose port Spring Boot dùng
+# Stage 2: Chạy ứng dụng
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=builder /app/target/hex-game-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Lệnh khởi chạy ứng dụng
 ENTRYPOINT ["java", "-jar", "app.jar"]
