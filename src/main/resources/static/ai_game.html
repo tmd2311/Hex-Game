@@ -88,22 +88,19 @@
 
 <div class="button-container">
   <button class="button" onclick="callResetAPI()">Reset</button>
-  <button id="swap-button" class="button" onclick="callSwapAPI()">Swap</button>
+  <button id="swap-button" class="button">Swap</button>
 </div>
 <script src="ai_play.js"></script>
 <script>
-
   function goHome() {
     window.location.href = "home.html"; // Điều hướng đến trang home.html
   }
   window.addEventListener('DOMContentLoaded', () => {
     const swapButton = document.getElementById("swap-button");
     if (swapButton) {
-      swapButton.disabled = true;
       swapButton.style.opacity = "0.5";
     }
   });
-
 </script>
 </body>
 </html>
