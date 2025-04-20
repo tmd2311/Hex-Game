@@ -26,7 +26,7 @@ function setup() {
 }
 
 function draw() {
-    background(47, 47, 47); // Nền tối
+    background(255,255,255); // Nền trang
     translate(offsetX, offsetY); // Dịch chuyển để căn giữa
 
     // Vẽ lưới lục giác
@@ -79,7 +79,7 @@ function drawHexGrid() {
             let y = row * dy;
 
             // Xác định màu tô dựa trên trạng thái ô
-            let fillColor = null;
+            let fillColor = (255,255,255);
             if (board[row][col] === 1) {
                 fillColor = color(255, 0, 0); // Đỏ
             } else if (board[row][col] === 2) {
@@ -476,7 +476,7 @@ function redraw() {
             } else if (board[row][col] === 2) {
                 drawHexagon(x, y, 'blue');
             } else {
-                drawHexagon(x, y, 'gray');
+                drawHexagon(x, y, 'white');
             }
         }
     }
