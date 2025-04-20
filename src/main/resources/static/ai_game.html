@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlayHex AI</title>
+  <title>PlayHex with AI</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
     body {
@@ -17,6 +17,7 @@
     canvas {
       display: block;
       margin: 0 auto;
+      background-color: #ffffff;
     }
     #turn-indicator {
       text-align: center;
@@ -60,16 +61,22 @@
 </head>
 <body>
 
-<h3>PlayHex</h3>
+<h3 onclick="goHome()">PlayHex with AI</h3>
+
 <div id="turn-indicator"></div>
 
 <div class="button-container">
   <button class="button" onclick="callResetAPI()">Reset</button>
   <button id="swap-button" class="button" onclick="callSwapAPI()">Swap</button>
+  <!-- Nút Home mới thêm -->
 </div>
 
 </div>
 <script src="ai_play.js"></script>
-
+<script>
+  function goHome() {
+    window.location.href = "home.html"; // Điều hướng đến trang home.html
+  }
+</script>
 </body>
 </html>

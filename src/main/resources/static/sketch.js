@@ -11,6 +11,7 @@ let offsetY = 50;
 
 function setup() {
     createCanvas(600, 500); // Tạo canvas
+    background(255);  // Màu sáng (màu trắng)
     dx = hexSize * sqrt(3); // Khoảng cách ngang giữa các tâm lục giác
     dy = hexSize * 1.5; // Khoảng cách dọc giữa các tâm lục giác
 
@@ -26,7 +27,8 @@ function setup() {
 }
 
 function draw() {
-    background(47, 47, 47); // Nền tối
+    //background(47, 47, 47); // Nền tối
+    background(255);
     translate(offsetX, offsetY); // Dịch chuyển để căn giữa
 
     // Vẽ lưới lục giác
@@ -47,6 +49,12 @@ function draw() {
 
 // Hàm vẽ một lục giác tại vị trí (x, y)
 function drawHexagon(x, y, fillColor) {
+    // Luôn tô màu nền cho ô, nếu không có fillColor thì dùng màu sáng
+    if (!fillColor) {
+        fill(255); // Màu sáng cho ô trống
+    } else {
+        noFill(); // Tránh tô lớp ngoài nếu có fill bên trong
+    }
     beginShape();
     for (let i = 0; i < 6; i++) {
         let angle = radians(60 * i + 90); // Xoay 90 độ
@@ -87,9 +95,12 @@ function drawHexGrid() {
             }
 
             // Vẽ lục giác
-            stroke(100); // Viền xám cho lưới
+            //stroke(100); // Viền xám cho lưới
+            //strokeWeight(1);
+            //fill(50); // Màu nền của ô trống
+            stroke(180);        // Viền sáng hơn
             strokeWeight(1);
-            fill(50); // Màu nền của ô trống
+            fill(220);          // Ô trống sáng hơn
             drawHexagon(x, y, fillColor);
         }
     }

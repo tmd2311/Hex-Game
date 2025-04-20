@@ -66,13 +66,14 @@ public class GameController {
     }
 
     @PostMapping("/aimove")
-    public int[] aimove(@RequestBody int[][] board) {
-        if (board == null || board.length == 0) {
-            return new int[]{-1, -1};  // Trả về lỗi thay vì crash server
+    public ResponseEntity<int[]> aimove(@RequestBody int[][] board) {
+        if (board == null || board.length == 0 || board.length != board[0].length) {
+            return ResponseEntity.badRequest().body(new int[]{-1, -1}); // HTTP 400: Bad Request
         }
         int size = board.length;
         HexBoard hexBoard = new HexBoard(size);
         HexAI ai = new HexAI(size, board, hexBoard);
-         return ai.getBestMove();
+        int[] bestMove = ai.getBestMove();
+        return ResponseEntity.ok(bestMove); // HTTP 200: Trả về nước đi tốt nhất
     }
 }

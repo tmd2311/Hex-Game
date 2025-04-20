@@ -268,7 +268,7 @@ public class HexAI {
         // Kiểm tra chuỗi quân liên tiếp trên cùng một hàng để chặn đường của Player 1 (trái → phải)
         for (int row = 0; row < size; row++) {
             int consecutive = countConsecutiveOnRow(row, 1); // Đếm chuỗi của Player 1 trên hàng
-            if (consecutive >= 2) { // Giảm ngưỡng xuống 2 để chặn sớm
+            if (consecutive >= 3) { // Giảm ngưỡng xuống 2 để chặn sớm
                 // Tìm ô đầu và ô cuối của chuỗi
                 int firstCol = -1, lastCol = -1;
                 for (int col = 0; col < size; col++) {
@@ -308,7 +308,7 @@ public class HexAI {
         // Kiểm tra chuỗi quân liên tiếp trên cùng một cột để chặn đường của Player 1 (nếu cần)
         for (int col = 0; col < size; col++) {
             int consecutive = countConsecutiveOnCol(col, 1); // Đếm chuỗi của Player 1 trên cột
-            if (consecutive >= 2) { // Giảm ngưỡng xuống 2
+            if (consecutive >= 3) { // Giảm ngưỡng xuống 2
                 // Tìm ô đầu và ô cuối của chuỗi
                 int firstRow = -1, lastRow = -1;
                 for (int row = 0; row < size; row++) {
